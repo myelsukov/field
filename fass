@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+PREFIX="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+PREFIX="${PREFIX%/}"
+PREFIX_LEN=${#PREFIX}
+USE_FZF=1
+declare -a found
+SCRIPTNAME=$(basename $0)
+SEARCH=$1
+shift
+
+type -a fzf >/dev/null
+if [[ $? == 0 ]]; then
+   passfile=$(find $PREFIX -type f ! -regex "${PREFIX}/\..*" | sed -e "s:${PREFIX}/::" -e "s/\.gpg$//" | fzf --header="Choose password entry" +m --cycle -1 -0 -q \'${SEARCH})
+else
+    while read -r ; do
+        found[${#found[@]}]=${REPLY}
+    done < <(find $PREFIX -type f ! -regex "${PREFIX}/\..*" -iname "*${SEARCH}*" | sed -e "s:${PREFIX}/::" -e "s/\.gpg$//")
+
+    if [[ ${#found[@]} = 1 ]]; then
+        passfile=${found[0]}
+    elif [[ ${#found[@]} -gt 1 ]]; then
+        echo Ambiguous name: ${SEARCH}
+        select passfile in "${found[@]}"; do
+            [[ " ${found[*]} " == *" $passfile "* ]] && break
+        done
+    else
+        echo "Not found: ${SEARCH}"
+        exit 1
+    fi
+fi
+
+if [[ -n ${passfile} ]]; then
+    if [[ ${SCRIPTNAME} == "fassc" ]]; then
+        TOCLIP=-c
+    fi
+    if [[ "$@" == "" || $1 == *-* ]]; then
+        cmd=show
+    else
+        cmd=$1
+        shift
+    fi
+    pass ${cmd} "${@}" "${passfile}" ${TOCLIP} 
+fi
