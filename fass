@@ -21,7 +21,7 @@ else
     elif [[ ${#found[@]} -gt 1 ]]; then
         echo Ambiguous name: ${SEARCH}
         select passfile in "${found[@]}"; do
-            [[ " ${found[*]} " == *" $passfile "* ]] && break
+            [[ "${found[*]}" == *" $passfile "* ]] && break
         done
     else
         echo "Not found: ${SEARCH}"
@@ -33,7 +33,7 @@ if [[ -n ${passfile} ]]; then
     if [[ ${SCRIPTNAME} == "fassc" ]]; then
         TOCLIP=-c
     fi
-    if [[ "$@" == "" || $1 == *-* ]]; then
+    if [[ "$@" == "" || $1 == -* ]]; then
         cmd=show
     else
         cmd=$1
