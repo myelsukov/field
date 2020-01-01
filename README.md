@@ -20,14 +20,17 @@
 
 # fass
 
-Fuzzy find wrapper for the pass. It uses (if installed) fzf: https://github.com/junegunn/fzf to display matching pass-files.
+Fuzzy find wrapper for the pass --clip. It uses (if installed) fzf: https://github.com/junegunn/fzf to display matching pass-files.
 
 ```
 Usage:
 
   fass partial-pass-file-name [pass command and options]
 
-  fass bank otp -c
+  fass bank field --name url
+      Copy url for the matching pass-file to the clipboard
+      
+  fass bank otp
       Copy OTP code for the matching pass-file to the clipboard
    ``` 
    
