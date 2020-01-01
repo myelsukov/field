@@ -6,12 +6,12 @@
 ## Usage
 
 ```
-       pass field [filed-name] [-c] pass-file
+       pass field [--name=field-name,-n filed-name] [-c] pass-file
 
-       pass field url pass-file
+       pass field -n url pass-file
            Display url field from the pass-file
 
-       pass field login -c pass-file
+       pass field --name=login -c pass-file
            Copy login field from the pass-file to the clipboard
 
        pass field pass-file
