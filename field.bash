@@ -23,7 +23,9 @@ cmd_field() {
   if [[ -z ${field} ]]; then
     local value="$($GPG -d "${GPG_OPTS[@]}" "$passfile" | head -n 1)"
   else
-    local value="$($GPG -d "${GPG_OPTS[@]}" "$passfile" | sed -rn '/^'"${field}"':/I,/^[[:alnum:]]+:/{/^'"${field}"':/I{s/^'"${field}"':[[:space:]]*//Ip;n};/^[[:alnum:]]+:/!{p}}')"
+    # This will copy only the first line. I don't know yet how to deal with multi-line fields. Below is unsuccessful attempt I keep for reference
+    # local value="$($GPG -d "${GPG_OPTS[@]}" "$passfile" | sed -rn '/^'"${field}"':/I,/^[[:alnum:]]+:/{/^'"${field}"':/I{s/^'"${field}"':[[:space:]]*//Ip;n};/^[[:alnum:]]+:/!{p}}')"
+    local value="$($GPG -d "${GPG_OPTS[@]}" "$passfile" | sed -rn '/^'"${field}"':/I {s/^'"${field}"':[[:space:]]*//Ip;q}')"
   fi
   if [[ $clip -ne 0 ]]; then
     clip "${value}" "${field} from $path"
