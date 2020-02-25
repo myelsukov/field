@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+PREFIX="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+PREFIX="${PREFIX%/}"
+SED_IT="sed -e s:${PREFIX}/:: -e s/\.gpg$//"
+: ${PASS_FILE_GUI_CHOOSER:=true}
+: ${NUM_LINES:=25}
+PASS_PROMPT="Choose password entry"
+unset CHOOSER
+
+SEARCH="$1"
+shift
+
+if [[ "${SEARCH}" == "-" ]]
+then
+    SEARCH=''
+fi
+
+joinArray() {
+    IFS=$'\n'; echo "$*"
+}
+
+declare -a found
+
+while read -r ; do
+    found[${#found[@]}]=${REPLY}
+done < <(find "$PREFIX" -type f ! -regex "${PREFIX}/\..*" -ipath "*${SEARCH}*" | ${SED_IT})
+
+if [[ ${#found[@]} = 0 ]]
+then
+    exit
+elif [[ ${#found[@]} = 1 ]]; then
+    echo "${found[0]}"
+    exit
+fi
+
+if [[ -z ${SSH_CONNECTION} && "${PASS_FILE_GUI_CHOOSER}" == "true" ]]
+then
+    # GUI can be used
+    if [[ "$(uname)" == "Darwin" ]]
+    then
+        type -a choose &>/dev/null && CHOOSER=choose
+    else
+        type -a bemenu &>/dev/null && CHOOSER=bemenu
+    fi
+fi
+
+[[ -z ${CHOOSER} ]] && type -a fzf &>/dev/null && CHOOSER=fzf
+[[ -z ${CHOOSER} ]] && type -a bemenu &>/dev/null && CHOOSER=bemenu
+
+case "${CHOOSER}" in
+    choose)
+        joinArray "${found[@]}" | choose -n ${NUM_LINES}
+    ;;
+    bemenu)
+        joinArray "${found[@]}" | bemenu bemenu -l ${NUM_LINES} --fn "DejaVu Sans Mono 20" --ifne -p "${PASS_PROMPT}: " -P ">" -b -i
+    ;;
+    fzf)
+        joinArray "${found[@]}" | fzf --preview 'pass show {}' --preview-window hidden:wrap --bind '?:toggle-preview' --header="${PASS_PROMPT}" +m --cycle -1 -0 -q \'${SEARCH} --height=${NUM_LINES} -i
+    ;;
+    *)
+        # Default
+        echo Ambiguous name: ${SEARCH}
+        select passfile in "${found[@]}"; do
+            [[ "${found[*]}" == *" ${passfile} "* ]] && echo "${passfile}" && break
+        done
+    ;;
+esac

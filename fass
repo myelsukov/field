@@ -1,34 +1,25 @@
 #!/usr/bin/env bash
-PREFIX="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
-PREFIX="${PREFIX%/}"
-declare -a found
-SCRIPTNAME=$(basename $0)
-SEARCH=$1
+#set -x
+source "${HOME}/.BASH_ENV"
+if [[ "$1" == "-c" || "$1" == "--clip" ]]
+then
+    TOCLIP=true
+    shift
+elif [[ "$1" == "-t" || "$1" == "--type" ]]
+then
+    TYPE=true
+    shift
+fi
+
+SEARCH="$1"
 shift
+
 if [[ "${SEARCH}" == "-" ]]
 then
     SEARCH=''
 fi
-type -a fzf >/dev/null
-if [[ $? == 0 ]]; then
-   passfile=$(find $PREFIX -type f ! -regex "${PREFIX}/\..*" | sed -e "s:${PREFIX}/::" -e "s/\.gpg$//" | fzf --header="Choose password entry" +m --cycle -1 -0 -q \'${SEARCH})
-else
-    while read -r ; do
-        found[${#found[@]}]=${REPLY}
-    done < <(find $PREFIX -type f ! -regex "${PREFIX}/\..*" -iname "*${SEARCH}*" | sed -e "s:${PREFIX}/::" -e "s/\.gpg$//")
 
-    if [[ ${#found[@]} = 1 ]]; then
-        passfile=${found[0]}
-    elif [[ ${#found[@]} -gt 1 ]]; then
-        echo Ambiguous name: ${SEARCH}
-        select passfile in "${found[@]}"; do
-            [[ "${found[*]}" == *" $passfile "* ]] && break
-        done
-    else
-        echo "Not found: ${SEARCH}"
-        exit 1
-    fi
-fi
+passfile=$(pass-file-chooser "${SEARCH}")
 
 if [[ -n ${passfile} ]]; then
     if [[ "$@" == "" || $1 == -* ]]; then
@@ -37,6 +28,20 @@ if [[ -n ${passfile} ]]; then
         cmd=$1
         shift
     fi
-    nohup pass ${cmd} "${@}" "${passfile}" --clip &>/dev/null &
-	echo "Copied requested data of ${passfile} to clipboard. Will clear in a minute or so"
+    if [[ "${TOCLIP}" == "true" || "${SCRIPTNAME}" == "fassc" ]]
+    then
+        # Copy to the clipboard (auto clean in 45 seconds)
+        nohup pass ${cmd} "${@}" "${passfile}" --clip &>/dev/null &
+    	echo "Copied requested data of ${passfile} to clipboard. The will be discarded from the clipboard in a minute or so"
+    else
+        RESULT=$(pass ${cmd} "${@}" "${passfile}")
+        if [[ "${TYPE}" == "true" ]]
+        then
+            type-command --check-availability || exit 1
+            # Send the result to the keyboard buffer
+            nohup type-command "${RESULT}" &>/dev/null &
+        else
+            echo "${RESULT}"
+        fi
+    fi
 fi

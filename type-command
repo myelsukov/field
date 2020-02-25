@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+if [[ $1 == "--check-availability" ]]
+then
+    if [[ "$(uname)" == "Darwin" ]]
+    then
+        type -a cliclick &>/dev/null
+        if [ $? -ne 0 ]
+        then
+            echo "Failure: cliclick is not installed"
+            exit 1
+        fi
+    else
+        type -a xdotool &>/dev/null
+        if [ $? -ne 0 ]
+        then
+            echo "Failure: xdotool is not installed"
+            exit 1
+        fi
+    fi
+    exit 0
+fi
+(
+if [[ "$(uname)" == "Darwin" ]]
+then
+    cliclick w:750 ku:alt,cmd,ctrl,fn,shift t:"${*}" kp:enter
+else
+    xdotool sleep 0.75 type --clearmodifiers "${*}"
+    xdotool sleep 0.25 key Return
+fi
+) &>/dev/null & disown
