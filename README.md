@@ -15,7 +15,7 @@
            Copy login field from the pass-file to the clipboard
 
        pass field pass-file
-           same as pass show pass-file
+           same as pass show pass-file but prints password only (pass prints the whole file)
 ```
 
 # fass
