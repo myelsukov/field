@@ -2,7 +2,7 @@
 
 ## Description
    `pass field` extends the pass utility allowing to display arbitrary field from the passfile
-   
+
 ## Usage
 
 ```
@@ -20,17 +20,37 @@
 
 # fass
 
-Fuzzy find wrapper for the pass --clip. It uses (if installed) fzf: https://github.com/junegunn/fzf to display matching pass-files.
+Fuzzy find wrapper for the pass. It uses (if installed)
+
+* bemenu (Linux & Mac OS): https://github.com/Cloudef/bemenu  to display matching pass-files.
+* choose (Mac OS): https://github.com/chipsenkbeil/choose  to display matching pass-files.
+* fzf (Linux & Mac OS): https://github.com/junegunn/fzf to display matching pass-files.
+* cliclick (Mac OS): https://github.com/BlueM/cliclick to send desired data to the keyboard buffer
+* xdotool (Linux): https://github.com/jordansissel/xdotool  to send desired data to the keyboard buffer
+
+## Supporting scripts
+
+ * pass-file-chooser
+ * type-command
 
 ```
 Usage:
 
-  fass partial-pass-file-name [pass command and options]
+  fass [-t | --type | -c | --clip] partial-pass-file-name [pass command and options]
 
-  fass bank field --name url
-      Copy url for the matching pass-file to the clipboard
-      
-  fass bank otp
+  fass -c bank field --name url
+      Copy url field from the matching pass-file to the clipboard
+
+  fass -t bank field --name url
+      Send url field from the matching pass-file to the keyboard buffer
+
+  fass --clip bank otp
       Copy OTP code for the matching pass-file to the clipboard
-   ``` 
-   
+
+  fass bank otp
+      Print OTP code for the matching pass-file to the stdout
+
+  fass
+      This command will allow to choose any pass-file and output password from that file to the stdout
+```
+

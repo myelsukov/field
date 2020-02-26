@@ -45,7 +45,7 @@ then
 fi
 
 [[ -z ${CHOOSER} ]] && type -a fzf &>/dev/null && CHOOSER=fzf
-[[ -z ${CHOOSER} ]] && type -a bemenu &>/dev/null && CHOOSER=bemenu
+[[ -z ${CHOOSER} ]] && type -a bemenu &>/dev/null && CHOOSER=bemenu && export BEMENU_BACKEND=curses
 
 case "${CHOOSER}" in
     choose)
