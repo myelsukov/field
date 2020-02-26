@@ -51,6 +51,6 @@ Usage:
       Print OTP code for the matching pass-file to the stdout
 
   fass
-      This command will allow to choose any pass-file and output password from that file to the stdout
+      This command will allow to choose any pass-file and print that file to the stdout
 ```
 
