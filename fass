@@ -19,6 +19,7 @@ then
     SEARCH=''
 fi
 
+# Choose the pass-file
 passfile=$(pass-file-chooser "${SEARCH}")
 
 if [[ -n ${passfile} ]]; then
@@ -28,19 +29,22 @@ if [[ -n ${passfile} ]]; then
         cmd=$1
         shift
     fi
+    # if invoked via fassc symlink then send result to clipboard
     if [[ "${TOCLIP}" == "true" || "${SCRIPTNAME}" == "fassc" ]]
     then
-        # Copy to the clipboard (auto clean in 45 seconds)
+        # Copy requested data to the clipboard (auto clean in 45 seconds)
         nohup pass ${cmd} "${@}" "${passfile}" --clip &>/dev/null &
-    	echo "Copied requested data of ${passfile} to clipboard. The will be discarded from the clipboard in a minute or so"
+    	echo "Copied requested data from the ${passfile} to clipboard. The copied data will be discarded from the clipboard in a minute or so"
     else
+        # Get the data
         RESULT=$(pass ${cmd} "${@}" "${passfile}")
         if [[ "${TYPE}" == "true" ]]
         then
+            # Send the result to the keyboard buffer (e.g. type URL in the browser's search bar
             type-command --check-availability || exit 1
-            # Send the result to the keyboard buffer
             nohup type-command "${RESULT}" &>/dev/null &
         else
+            # Send the result to the stdout
             echo "${RESULT}"
         fi
     fi
