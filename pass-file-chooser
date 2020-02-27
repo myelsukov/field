@@ -59,7 +59,7 @@ case "${CHOOSER}" in
     ;;
     *)
         # Default
-        echo Ambiguous name: ${SEARCH}
+        echo "${PASS_PROMPT}: "
         select passfile in "${found[@]}"; do
             [[ "${found[*]}" == *" ${passfile} "* ]] && echo "${passfile}" && break
         done
