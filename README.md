@@ -22,23 +22,23 @@
 
 Fuzzy find wrapper for the pass. It uses (if installed)
 
-Sending keyboard events and sending data to clipboard (obviously) does not work over ssh.
-Browsing and sending data to `stdout` works everywhere.
-
 * bemenu (Linux & Mac OS): https://github.com/Cloudef/bemenu  to display matching pass-files.
 * choose (Mac OS): https://github.com/chipsenkbeil/choose  to display matching pass-files.
 * fzf (Linux & Mac OS): https://github.com/junegunn/fzf to display matching pass-files.
 * (awesome!!!) hammerspoon (Mac OS): https://github.com/Hammerspoon/hammerspoon to send desired data to the keyboard buffer
 * xdotool (Linux): https://github.com/jordansissel/xdotool  to send desired data to the keyboard buffer
 
+Sending keyboard events and sending data to clipboard (obviously) does not work over ssh.
+Browsing and sending data to `stdout` works everywhere.
+
 ## Supporting scripts
 
  The supporting scripts should be on the `PATH`
 
- * pass-file-chooser
- * type-command
- * send-notify
- * tmp-dir
+ * pass-file-chooser - Fuzzy finder. Returns a pass file
+ * type-command - sends stuff to the keyboard buffer
+ * send-notify - sends desktop notifications
+ * tmp-dir - internal library to generate secure or insecure temporary directories and files
 
 ```
 Usage:
