@@ -38,6 +38,7 @@ Browsing and sending data to `stdout` works everywhere.
  * pass-file-chooser - Fuzzy finder. Returns a pass file
  * type-command - sends stuff to the keyboard buffer
  * send-notify - sends desktop notifications
+ * play-ping - Well, plays a ping sound
  * tmp-dir - internal library to generate secure or insecure temporary directories and files
 
 ```

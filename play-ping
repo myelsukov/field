@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+if [[ $(uname) == Darwin ]]
+then
+    afplay /System/Library/Sounds/Ping.aiff
+else
+    mplayer -nolirc -quiet -msglevel all=-1 /usr/share/sounds/freedesktop/stereo/bell.oga
+fi
