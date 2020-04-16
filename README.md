@@ -30,10 +30,12 @@ Fuzzy find wrapper for the pass. It uses (if installed)
 
 ## Supporting scripts
 
+ The supporting scripts should be on the `PATH`
+
  * pass-file-chooser
  * type-command
  * send-notify
- * tmp_dir
+ * tmp-dir
 
 ```
 Usage:
