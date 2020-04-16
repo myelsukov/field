@@ -32,6 +32,8 @@ Fuzzy find wrapper for the pass. It uses (if installed)
 
  * pass-file-chooser
  * type-command
+ * send-notify
+ * tmp_dir
 
 ```
 Usage:

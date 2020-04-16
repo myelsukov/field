@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+if [[ "$1" == "-a" || "$1" == "--alert" ]]
+then
+    PERMANENT=1
+    SOUND=1
+    DASH_T="-t 0"
+    shift
+fi
+if [[ "$1" == "-p" || "$1" == "--permanent" ]]
+then
+    PERMANENT=1
+    DASH_T="-t 0"
+    shift
+fi
+if [[ "$1" == "-s" || "$1" == "--sound" ]]
+then
+    SOUND=1
+    shift
+fi
+
+TITLE=$1
+shift
+
+[[ "${SOUND}" == 1 ]] && play-ping
+
+if [[ $(uname) == Darwin ]]
+then
+    if [[ ${PERMANENT} == 1 ]]
+    then
+        (osascript << EOF
+            display alert "${TITLE}" message "${@}"
+EOF
+) &>/dev/null & disown
+    else
+        osascript << EOF
+            display notification "${@}" with title "${TITLE}"
+EOF
+    fi
+else
+    notify-send ${DASH_T} "${TITLE}" "${@}"
+fi

@@ -9,6 +9,10 @@ elif [[ "$1" == "-t" || "$1" == "--type" ]]
 then
     TYPE=true
     shift
+else
+    if [[ $(basename "$0") == "fassc" ]]; then
+        TOCLIP=true
+    fi
 fi
 
 SEARCH="$1"
@@ -30,7 +34,7 @@ if [[ -n ${passfile} ]]; then
         shift
     fi
     # if invoked via fassc symlink then send result to clipboard
-    if [[ "${TOCLIP}" == "true" || "${SCRIPTNAME}" == "fassc" ]]
+    if [[ "${TOCLIP}" == "true" ]]
     then
         # Copy requested data to the clipboard (auto clean in 45 seconds)
         nohup pass ${cmd} "${@}" "${passfile}" --clip &>/dev/null &
@@ -41,7 +45,6 @@ if [[ -n ${passfile} ]]; then
         if [[ "${TYPE}" == "true" ]]
         then
             # Send the result to the keyboard buffer (e.g. type URL in the browser's search bar
-            type-command --check-availability || exit 1
             nohup type-command "${RESULT}" &>/dev/null &
         else
             # Send the result to the stdout

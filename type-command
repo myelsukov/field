@@ -1,30 +1,238 @@
 #!/usr/bin/env bash
-if [[ $1 == "--check-availability" ]]
+# When called with --key the CorC modifier maps to ctrl in Linux and to Cmd in Mac OS
+UNAME=$(uname)
+if [[ "${UNAME}" == "Darwin" ]]
 then
-    if [[ "$(uname)" == "Darwin" ]]
+    type -a hs &>/dev/null
+    if [ $? -ne 0 ]
     then
-        type -a cliclick &>/dev/null
-        if [ $? -ne 0 ]
-        then
-            echo "Failure: cliclick is not installed"
-            exit 1
-        fi
-    else
-        type -a xdotool &>/dev/null
-        if [ $? -ne 0 ]
-        then
-            echo "Failure: xdotool is not installed"
-            exit 1
-        fi
+        send-notify -a "Failure" "Hammerspoon CLI is not installed"
+        exit 1
     fi
-    exit 0
+else
+    type -a xdotool &>/dev/null
+    if [ $? -ne 0 ]
+    then
+        send-notify -a "Failure" "xdotool is not installed"
+        exit 1
+    fi
+fi
+
+function translate_linux_key_to_mac() {
+    case "$1" in
+        CorC) echo cmd ;;           # Artificial ControlOrCommand key
+        CorC_R) echo rightcmd ;;    # Artificial ControlOrCommand key
+
+        ctrl) echo ctrl ;;
+        Control_L) echo ctrl ;;
+        Control_R) echo rightctrl ;;
+        shift) echo shift ;;
+        Shift_L) echo shift ;;
+        Shift_R) echo rightshift ;;
+        alt) echo alt ;;
+        Alt_L) echo alt ;;
+        Alt_R) echo rightalt ;;
+
+        Backspace) echo delete ;;
+        Tab) echo tab ;;
+        Return) echo enter ;;
+        Escape) echo escape ;;
+        Delete) echo forwarddelete ;;
+        Home) echo home ;;
+        Left) echo left ;;
+        Up) echo up ;;
+        Right) echo right ;;
+        Down) echo down ;;
+        Page_Up) echo page-up ;;
+        Page_Down) echo page-down ;;
+        End) echo end ;;
+        KP_Enter) echo padenter ;;
+        KP_Home) echo home ;;
+        KP_Left) echo left ;;
+        KP_Up) echo up ;;
+        KP_Right) echo right ;;
+        KP_Down) echo down ;;
+        KP_Page_Up) echo pageup ;;
+        KP_Page_Down) echo pagedown ;;
+        KP_End) echo end ;;
+        KP_Delete) echo padclear ;;
+        KP_Equal) echo pad= ;;
+        KP_Multiply) echo pad* ;;
+        KP_Add) echo pad+ ;;
+        KP_Subtract) echo pad- ;;
+        KP_Decimal) echo . ;;
+        KP_Divide) echo pad/ ;;
+
+        KP_0) echo pad0 ;;
+        KP_1) echo pad1 ;;
+        KP_2) echo pad2 ;;
+        KP_3) echo pad3 ;;
+        KP_4) echo pad4 ;;
+        KP_5) echo pad5 ;;
+        KP_6) echo pad6 ;;
+        KP_7) echo pad7 ;;
+        KP_8) echo pad8 ;;
+        KP_9) echo pad9 ;;
+
+        F1) echo f1 ;;
+        F2) echo f2 ;;
+        F3) echo f3 ;;
+        F4) echo f4 ;;
+        F5) echo f5 ;;
+        F6) echo f6 ;;
+        F7) echo f7 ;;
+        F8) echo f8 ;;
+        F9) echo f9 ;;
+        F10) echo f10 ;;
+        F11) echo f11 ;;
+        F12) echo f12 ;;
+        F13) echo f13 ;;
+        F14) echo f14 ;;
+        F15) echo f15 ;;
+        F16) echo f16 ;;
+        F17) echo f17 ;;
+        F18) echo f18 ;;
+        F19) echo f19 ;;
+        F20) echo f20 ;;
+
+        space | " ") echo space ;;
+        exclam | \!) echo 1 ; return 1 ;;
+        quotedbl | \") echo \' ; return 1 ;;
+        numbersign | \# ) echo 3 ; return 1 ;;
+        dollar | \$) echo 4 ; return 1 ;;
+        percent | \%) echo 5 ; return 1 ;;
+        ampersand | \&) echo 6 ; return 1 ;;
+        apostrophe) echo \' ;;
+        parenleft | \() echo 9 ; return 1 ;;
+        parenright | \))  echo 0 ; return 1 ;;
+        asterisk | \*) echo 8 ; return 1 ;;
+        plus | \+) echo = ; return 1 ;;
+        comma) echo , ;;
+        minus) echo - ;;
+        period) echo . ;;
+        slash) echo \/ ;;
+        colon | \:) echo \; ; return 1 ;;
+        semicolon) echo \; ;;
+        less | \<) echo , ; return 1 ;;
+        equal) echo \= ;;
+        greater | \>) echo . ; return 1 ;;
+        question | \?) echo / ; return 1 ;;
+        at | \@) echo 2 ; return 1 ;;
+        bracketleft) echo \[ ;;
+        backslash | \\) echo \\\\ ;;
+        bracketright) echo \] ;;
+        asciicircum | \^) echo 6 ; return 1 ;;
+        underscore| \_) echo - ; return 1 ;;
+        grave | \`) echo \` ;;
+        braceleft) echo \[ ; return 1 ;;
+        bar | \|) echo \\\\ ; return 1 ;;
+        braceright) echo \] ; return 1 ;;
+        asciitilde | \~) echo \` ; return 1 ;;
+
+        *) echo $1 ;;
+    esac
+    return 0
+}
+
+function append_modifier() {
+    if [[ -n "$1" ]]
+    then
+        echo "$1, \"$2\""
+    else
+        echo "\"$2\""
+    fi
+}
+
+function build_hs_script() {
+    FILENAME=$1
+    shift
+    echo "#!/usr/local/bin/hs" >"${FILENAME}"
+    for KEY in "${@}" ; do
+        unset MAC_KEYS
+        NEEDS_SHIFT=0
+        IFS='+' ; read -r -a KEY_PARTS  <<< "${KEY}"
+        let last=${#KEY_PARTS[@]}-1
+        for (( i = 0 ; i < ${#KEY_PARTS[@]} ; i++ ))
+        do
+            MAC_KEYS[$i]=$(translate_linux_key_to_mac "${KEY_PARTS[$i]}") || NEEDS_SHIFT=1
+        done
+        MODIFIERS=''
+        for (( i = 0 ; i < ${#MAC_KEYS[@]}-1; i++ ))
+        do
+            MODIFIERS=$(append_modifier "${MODIFIERS}" "${MAC_KEYS[$i]}")
+        done
+        if [[ -z ${MODIFIERS} && ${NEEDS_SHIFT} == 1 ]]
+        then
+            MODIFIERS='"shift"'
+        fi
+        echo "hs.eventtap.keyStroke({${MODIFIERS}}, \"${MAC_KEYS[${last}]}\")" >>"${FILENAME}"
+    done
+    echo "return 0"
+#    cat "${FILENAME}"
+}
+
+function append() {
+    if [[ -n "$1" ]]
+    then
+        echo "$1 $2"
+    else
+        echo "$2"
+    fi
+}
+
+if [[ $1 == "--key" ]]
+then
+   COMMAND=key
+   shift
+else
+   COMMAND=type
+fi
+
+NL=true
+if [[ "$1" == "-n" ]]
+then
+    unset NL
+    shift
 fi
 (
-if [[ "$(uname)" == "Darwin" ]]
+if [[ "${UNAME}" == "Darwin" ]]
 then
-    cliclick w:750 ku:alt,cmd,ctrl,fn,shift t:"${*}" kp:enter
+    if [[ ${COMMAND} == type ]]
+    then
+        hs <<<"hs.eventtap.keyStrokes(\"${*}\")"
+        if [[ ${NL} == "true" ]]
+        then
+            hs <<<"hs.eventtap.keyStroke({}, \"return\")"
+        fi
+    else
+        source tmp-dir # TODO Add path to the tmp-dir
+        gettmpfilename
+#        LOCAL_TMPFILE=${HOME}/log/hs.tmp
+        build_hs_script "${LOCAL_TMPFILE}" "${@}"
+        RC=$(hs -q "${LOCAL_TMPFILE}") || send-notify -s "Failure" "Hammerspoon failed to submit keystrokes"
+        exit ${RC}
+    fi
 else
-    xdotool sleep 0.75 type --clearmodifiers "${*}"
-    xdotool sleep 0.25 key Return
+    if [[ ${COMMAND} == type ]]
+    then
+        xdotool sleep 0.5 type --clearmodifiers ${*}
+        if [[ ${NL} == "true" ]]
+        then
+            xdotool sleep 0.25 key Return
+        fi
+    else
+        NEW_POS=''
+        for i
+        do
+            if [[ "$i" =~ CorC\+ ]]
+            then
+                NEW_POS=$(append "${NEW_POS}" "${i/CorC\+/ctrl+}")
+            else
+                NEW_POS=$(append "${NEW_POS}" "${i/CorC_R\+/Control_R+}")
+            fi
+        done
+        set -- ${NEW_POS}
+        xdotool sleep 0.5 key ${*} || send-notify -s "Failure" "xdotool failed to submit keystrokes"
+    fi
 fi
 ) &>/dev/null & disown
