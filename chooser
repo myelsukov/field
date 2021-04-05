@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#set -x
+: ${GUI_CHOOSER:=true}
+: ${NUM_LINES:=25}
+: ${CHOOSER_PROMPT:=Choose an entry}
+: ${CHOOSER_SEARCH:=}
+
+joinArray() {
+    IFS=$'\n'; echo "$*"
+}
+
+if [[ -z ${CHOOSER} ]]
+then
+    if [[ -z ${SSH_CONNECTION} && "${GUI_CHOOSER}" == "true" ]]
+    then
+        # GUI can be used
+        if [[ "$(uname)" == "Darwin" ]]
+        then
+            type -a choose &>/dev/null && CHOOSER=choose
+        else
+            type -a bemenu &>/dev/null && CHOOSER=bemenu
+        fi
+    fi
+
+    [[ -z ${CHOOSER} ]] && type -a fzf &>/dev/null && CHOOSER=fzf
+    [[ -z ${CHOOSER} ]] && type -a bemenu &>/dev/null && CHOOSER=bemenu && export BEMENU_BACKEND=curses
+fi
+
+case "${CHOOSER}" in
+    choose)
+        joinArray "${@}" | choose -n ${NUM_LINES}
+    ;;
+    bemenu)
+        joinArray "${@}" | bemenu -l ${NUM_LINES} --fn "DejaVu Sans Mono 20" --ifne -p "${CHOOSER_PROMPT}: " -P ">" -b -i
+    ;;
+    fzf)
+        joinArray "${@}" | fzf --header="${CHOOSER_PROMPT}" +m --cycle -1 -0 --height=${NUM_LINES} -i -q "${CHOOSER_SEARCH}"
+    ;;
+    *)
+        # Default
+        PS3="${CHOOSER_PROMPT}: "
+        select entry in "${@}"; do
+            if [[ " ${*} " == *" ${entry} "* ]]
+            then
+                echo "${entry}"
+                break
+            fi
+        done
+    ;;
+esac

@@ -9,6 +9,12 @@ elif [[ "$1" == "-t" || "$1" == "--type" ]]
 then
     TYPE=true
     shift
+    TERMINATOR=''
+    if [[ "$1" == "-n" || "$1" == "-t" ]]
+    then
+        TERMINATOR="$1"
+        shift
+    fi
 else
     if [[ $(basename "$0") == "fassc" ]]; then
         TOCLIP=true
@@ -45,7 +51,7 @@ if [[ -n ${passfile} ]]; then
         if [[ "${TYPE}" == "true" ]]
         then
             # Send the result to the keyboard buffer (e.g. type URL in the browser's search bar
-            nohup type-command "${RESULT}" &>/dev/null &
+            nohup type-command --type "${TERMINATOR}" "${RESULT}" &>/dev/null &
         else
             # Send the result to the stdout
             echo "${RESULT}"
